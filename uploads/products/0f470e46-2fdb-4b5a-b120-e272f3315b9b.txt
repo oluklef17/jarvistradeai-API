@@ -1,0 +1,197 @@
+JarvisTrade Full-Stack Study Guide & Mastery Roadmap
+
+========================================================
+1. Project Purpose & High-Level Architecture
+========================================================
+
+**Purpose:**  
+JarvisTrade is a marketplace for premium trading tools and freelance services, featuring digital product sales, project management, payment processing, licensing, and a blog. It uses a FastAPI backend (Python) and a React/Next.js frontend (TypeScript).
+
+**Architecture Overview:**
+
+[User] <---> [React Frontend] <--REST API--> [FastAPI Backend] <---> [Database]
+                                                    |
+                                         [Payment Providers (Paystack, MQL5)]
+                                                    |
+                                         [Email Service, File Storage]
+
+**Key Flows:**
+- Users browse products, purchase via Paystack/MQL5, receive licenses, and download files.
+- Freelance project requests are managed with admin/client dashboards.
+- Notifications and emails keep users informed.
+
+**Diagram (Pseudo):**
+
+```
+[User] <-> [Frontend] <-> [API] <-> [DB]
+                          |
+                  [Payment Service]
+                          |
+                  [Email/Notification]
+```
+
+========================================================
+2. Codebase Modules & Their Roles
+========================================================
+
+**Backend (FastAPI):**
+- `main.py`: Main API, routes, business logic, orchestration.
+- `auth.py`: Authentication (JWT, password hashing, user session).
+- `models.py`: SQLAlchemy ORM models (User, Product, Transaction, etc.).
+- `schemas.py`: Pydantic schemas for request/response validation.
+- `database.py`: DB connection/session management.
+- `payment_service.py`: Paystack/MQL5 integration, payment verification.
+- `email_service.py`: Email sending logic.
+- `license_encryption.py`: License file generation and validation.
+- Migration scripts: DB schema evolution.
+
+**Frontend (React/Next.js):**
+- `src/components/`: UI components (ProductCard, ProjectManagementAdmin, etc.).
+- `src/pages/`: Page-level components (Marketplace, About, TermsOfService, etc.).
+- `src/services/`: API client logic.
+- `src/types/`: TypeScript types.
+- `public/`: Static assets.
+
+**Design Patterns:**
+- Dependency Injection (FastAPI's Depends)
+- MVC-like separation (models, schemas, routes)
+- Service Layer (payment_service, email_service)
+- Modular React components
+
+========================================================
+3. Key Files & Functions for "Big Picture"
+========================================================
+
+**Backend:**
+- `main.py`: Start here. Study the API endpoints, especially `/api/checkout`, `/api/payment/verify`, `/api/webhook/paystack`, `/api/products`, `/api/project-requests`.
+- `auth.py`: Understand `create_access_token`, `verify_token`, `get_current_user`.
+- `models.py`: Review all ORM models to see the data structure.
+- `payment_service.py`: See how payments are initialized and verified.
+- `email_service.py`: How notifications/emails are sent.
+
+**Frontend:**
+- `src/components/ProjectManagementAdmin.tsx`: Admin dashboard logic.
+- `src/pages/Marketplace.tsx`, `src/pages/About.tsx`: User-facing flows.
+- `src/services/api.ts`: How frontend talks to backend.
+
+========================================================
+4. Why This Structure? Trade-offs & Choices
+========================================================
+
+- **Separation of Concerns:**  
+  Backend is modular—auth, payment, notifications, and business logic are separated for maintainability.
+- **Scalability:**  
+  FastAPI supports async endpoints and dependency injection, making it scalable and testable.
+- **Security:**  
+  JWT for stateless auth, environment variables for secrets, and payment handled by third parties (PCI compliance).
+- **Frontend Modularity:**  
+  React components are reusable and organized by function, making UI changes isolated and testable.
+
+**Trade-offs:**
+- Some business logic is in routes (could be further abstracted).
+- Print/debug statements in production code (should be replaced with logging).
+- Payment retry and webhook flows are robust but could use more idempotency and security hardening.
+
+========================================================
+5. Practical Exercises (per Major Concept)
+========================================================
+
+**A. Authentication & User Management**
+- Exercise: Add a "reset password" endpoint and UI.
+- Exercise: Refactor `verify_token` to remove print statements and use logging.
+- Reflect: How does JWT improve scalability over session-based auth?
+
+**B. Product & Order Management**
+- Exercise: Add a new product category and display it in the frontend.
+- Exercise: Write a test that simulates a user purchasing and downloading a product.
+- Reflect: How does the system ensure only buyers can download products?
+
+**C. Payment Integration**
+- Exercise: Implement webhook signature verification for Paystack.
+- Exercise: Add a new payment provider (e.g., Stripe) as a learning project.
+- Reflect: What are the risks if payment amounts are not validated server-side?
+
+**D. Project Management (Freelance Services)**
+- Exercise: Add a new status to project requests (e.g., "On Hold") and update the admin dashboard to use it.
+- Exercise: Write a script to seed the database with sample projects and responses.
+- Reflect: How does the system prevent unauthorized access to project files?
+
+**E. Notifications & Email**
+- Exercise: Add a new notification type (e.g., "promotion") and send it to all users.
+- Exercise: Refactor notification creation to use async email sending.
+- Reflect: Why are notification preferences stored as JSON?
+
+**F. Frontend Integration**
+- Exercise: Add a loading spinner to the checkout page.
+- Exercise: Refactor a component to use React hooks for state management.
+- Reflect: How does the frontend handle payment status polling?
+
+========================================================
+6. Reflective Questions (After Each Section)
+========================================================
+
+- What is the flow of data from user action to database update for a purchase?
+- How does the backend ensure only authorized users can access certain endpoints?
+- What would break if the payment webhook was not called?
+- How are errors surfaced to the user, and how could this be improved?
+- Where is business logic duplicated, and how could it be centralized?
+
+========================================================
+7. Weak Spots & Learning Projects
+========================================================
+
+- **Logging:** Replace all print/debug with structured logging (e.g., Python’s `logging` module).
+- **Testing:** Add automated tests for payment, download, and project management flows.
+- **Security:** Harden webhook endpoints, validate all user input, and review CORS settings.
+- **Performance:** Profile endpoints for slow queries; add caching for frequently accessed data.
+- **Documentation:** Expand inline docstrings and add OpenAPI docs for all endpoints.
+- **Frontend:** Add error boundaries and improve user feedback for failed actions.
+
+**Learning Project Ideas:**
+- Add a Stripe payment integration.
+- Build a dashboard for admin analytics (orders, revenue, user growth).
+- Implement a full-text search for products and blog posts.
+- Add multi-language support to the frontend.
+
+========================================================
+8. Mastery Project: "End-to-End Feature Build"
+========================================================
+
+**Challenge:**  
+Design and implement a new feature: "Gift a Product"
+
+**Requirements:**
+- Allow users to purchase a product as a gift for another user (by email).
+- On successful payment, generate a license and send an email to the recipient.
+- Add admin dashboard support to track gifted purchases.
+- Update the frontend to support gifting in the checkout flow.
+- Write backend and frontend tests for the new flow.
+
+**Steps:**
+1. Design the database changes (e.g., add a `gifted_to_email` field to transactions/licenses).
+2. Update checkout and payment logic to handle gifting.
+3. Implement email notification to the recipient.
+4. Add admin and user dashboard views for gifted products.
+5. Test the entire flow, including edge cases (recipient not registered, failed payment, etc.).
+
+**Reflection:**  
+Document your design decisions, trade-offs, and what you learned. Present your solution as if onboarding a new developer.
+
+========================================================
+9. Study Roadmap (Suggested Order)
+========================================================
+
+1. Read this guide fully for orientation.
+2. Study `main.py` and `auth.py` for API and authentication flows.
+3. Explore `models.py` and `schemas.py` to understand data structures.
+4. Review payment and notification services.
+5. Dive into the React frontend, focusing on checkout and project management.
+6. Complete practical exercises and answer reflective questions.
+7. Pick a weak spot or learning project to improve.
+8. Attempt the Mastery Project and document your process.
+
+**Tip:**  
+Take notes, experiment with code changes, and use version control to track your learning progress.
+
+========================================================
+You now have a roadmap to expert-level understanding of JarvisTrade.
